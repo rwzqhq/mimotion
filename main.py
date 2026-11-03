@@ -317,6 +317,7 @@ if __name__ == "__main__":
             "PUSH_PLUS_TOKEN": os.environ.get("PUSH_PLUS_TOKEN", ""),
             "PUSH_PLUS_HOUR": os.environ.get("PUSH_PLUS_HOUR", ""),
             "PUSH_PLUS_MAX": os.environ.get("PUSH_PLUS_MAX", "30"),
+            "SERVER_CHAN_SEND_KEY": os.environ.get("SERVER_CHAN_SEND_KEY", ""),
             "PUSH_WECHAT_WEBHOOK_KEY": os.environ.get("PUSH_WECHAT_WEBHOOK_KEY", ""),
             "TELEGRAM_BOT_TOKEN": os.environ.get("TELEGRAM_BOT_TOKEN", ""),
             "TELEGRAM_CHAT_ID": os.environ.get("TELEGRAM_CHAT_ID", ""),
@@ -333,6 +334,7 @@ if __name__ == "__main__":
         push_plus_token=config.get('PUSH_PLUS_TOKEN'),
         push_plus_hour=config.get('PUSH_PLUS_HOUR'),
         push_plus_max=get_int_value_default(config, 'PUSH_PLUS_MAX', 30),
+        server_chan_send_key=config.get('SERVER_CHAN_SEND_KEY'),
         push_wechat_webhook_key=config.get('PUSH_WECHAT_WEBHOOK_KEY'),
         telegram_bot_token=config.get('TELEGRAM_BOT_TOKEN'),
         telegram_chat_id=config.get('TELEGRAM_CHAT_ID')

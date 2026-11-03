@@ -23,12 +23,14 @@ class PushConfig:
                  push_plus_token=None,
                  push_plus_hour=None,
                  push_plus_max=30,
+                 server_chan_send_key=None,
                  push_wechat_webhook_key=None,
                  telegram_bot_token=None,
                  telegram_chat_id=None):
         self.push_plus_token = push_plus_token
         self.push_plus_hour = push_plus_hour
         self.push_plus_max = int(push_plus_max) if push_plus_max else 30
+        self.server_chan_send_key = server_chan_send_key
         self.push_wechat_webhook_key = push_wechat_webhook_key
         self.telegram_bot_token = telegram_bot_token
         self.telegram_chat_id = telegram_chat_id
@@ -61,6 +63,35 @@ def push_plus(token, title, content):
         print(f"pushplus推送网络异常: {e}")
     except Exception as e:
         print(f"pushplus推送未知异常: {e}")
+
+
+def server_chan(send_key, title, content):
+    """
+    Server酱推送，消息类型为markdown
+    :param send_key: Server酱的SendKey，在 https://sct.ftqq.com 获取
+    :param title: 推送标题
+    :param content: 推送内容（markdown）
+    :return: none
+    """
+    requestUrl = f"https://sctapi.ftqq.com/{send_key}.send"
+    data = {
+        "title": title,
+        "desp": content
+    }
+    try:
+        response = requests.post(requestUrl, data=data)
+        if response.status_code == 200:
+            json_res = response.json()
+            if json_res.get('code') == 0:
+                print(f"server酱推送完毕：{json_res.get('message')}")
+            else:
+                print(f"server酱推送失败：{json.dumps(json_res)}")
+        else:
+            print("server酱推送失败")
+    except requests.exceptions.RequestException as e:
+        print(f"server酱推送网络异常: {e}")
+    except Exception as e:
+        print(f"server酱推送未知异常: {e}")
 
 
 def push_wechat_webhook(key, title, content):
@@ -140,6 +171,7 @@ def push_results(exec_results, summary, config: PushConfig):
     if not_in_push_time_range(config):
         return
     push_to_push_plus(exec_results, summary, config)
+    push_to_server_chan(exec_results, summary, config)
     push_to_wechat_webhook(exec_results, summary, config)
     push_to_telegram_bot(exec_results, summary, config)
 
@@ -199,6 +231,25 @@ def push_to_push_plus(exec_results, summary, config: PushConfig):
         push_plus(config.push_plus_token, f"{format_now()} 刷步数通知", html)
     else:
         print("未配置 PUSH_PLUS_TOKEN 跳过PUSHPLUS推送")
+
+
+def push_to_server_chan(exec_results, summary, config: PushConfig):
+    """推送到Server酱"""
+    # 判断是否需要Server酱推送
+    if config.server_chan_send_key and config.server_chan_send_key != '' and config.server_chan_send_key != 'NO':
+        content = f'## {summary}'
+        if len(exec_results) >= config.push_plus_max:
+            content += '\n- 账号数量过多，详细情况请前往github actions中查看'
+        else:
+            for exec_result in exec_results:
+                success = exec_result['success']
+                if success is not None and success is True:
+                    content += f'\n- 账号：{exec_result["user"]}刷步数成功，接口返回：{exec_result["msg"]}'
+                else:
+                    content += f'\n- 账号：{exec_result["user"]}刷步数失败，失败原因：{exec_result["msg"]}'
+        server_chan(config.server_chan_send_key, f"{format_now()} 刷步数通知", content)
+    else:
+        print("未配置 SERVER_CHAN_SEND_KEY 跳过server酱推送")
 
 
 def push_to_wechat_webhook(exec_results, summary, config: PushConfig):
